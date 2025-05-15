@@ -11,9 +11,4 @@ try {
 } catch (PDOException $e) {
     die("Connection failed: " . $e->getMessage());
 }
-
-// Now $pdo is available for use
-$stmt = $pdo->prepare("SELECT * FROM customers"); // Example query
-$stmt->execute();
-$customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
