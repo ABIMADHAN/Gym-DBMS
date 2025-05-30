@@ -190,10 +190,58 @@ if (isset($_GET['view_booking_id'])) {
         body {
             margin: 0;
             font-family: 'Segoe UI', sans-serif;
-            background: url('../images/dashboard-bg.jpg') no-repeat center center fixed;
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../images/trainer-dashboard-bg.jpg') no-repeat center center fixed;
             background-size: cover;
             color: #fff;
+            position: relative;
+            overflow-x: hidden;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
+        
+        /* Add animated gradient overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                135deg, 
+                rgba(25, 118, 210, 0.2) 0%, 
+                rgba(0, 0, 0, 0) 50%, 
+                rgba(77, 208, 225, 0.2) 100%
+            );
+            z-index: -1;
+            animation: gradientShift 15s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Dashboard image animation */
+        .dashboard-bg-accent {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            background: url('../images/gym-icon.png') no-repeat center center;
+            background-size: contain;
+            opacity: 0.05;
+            z-index: -1;
+            filter: blur(2px);
+            animation: float 10s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+        
         .dashboard-container {
             max-width: 900px;
             margin: 60px auto;
@@ -203,7 +251,48 @@ if (isset($_GET['view_booking_id'])) {
             box-shadow: 0 0 15px rgba(0,0,0,0.5);
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+        
+        /* Trainer profile image styling */
+        .trainer-profile-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .trainer-profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 60px;
+            object-fit: cover;
+            border: 3px solid #4dd0e1;
+            box-shadow: 0 0 15px rgba(77, 208, 225, 0.5);
+            margin: 0 auto 15px auto;
+            display: block;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .trainer-profile-pic:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(77, 208, 225, 0.8);
+        }
+        
+        .trainer-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4dd0e1;
+            margin: 5px 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .trainer-title {
+            font-size: 1.1em;
+            color: #f5f5f5;
+            opacity: 0.9;
+            margin: 5px 0 15px 0;
+        }
+        
         h2 {
             text-align: center;
             color: #4dd0e1;
@@ -343,215 +432,226 @@ if (isset($_GET['view_booking_id'])) {
     </style>
 </head>
 <body>
+<!-- Add floating background elements -->
+<div class="dashboard-bg-accent" style="top: 10%; left: 5%;"></div>
+<div class="dashboard-bg-accent" style="top: 60%; right: 5%; animation-delay: 2s;"></div>
+
 <div class="dashboard-container" id="confetti-container">
-    <h2>👨‍🏫 Welcome, Trainer!</h2>
-    <a href="trainer.php" class="back-link">⬅️ Back to Dashboard</a>
-    <div class="cards">
+        <!-- Add trainer profile section -->
+        <div class="trainer-profile-container">
+            <img src="../images/trainer-profile.jpg" alt="Trainer Profile" class="trainer-profile-pic">
+            <h2 class="trainer-name"><?php echo isset($_SESSION['user']['name']) ? htmlspecialchars($_SESSION['user']['name']) : 'Trainer'; ?></h2>
+            <p class="trainer-title">Fitness Professional</p>
+        </div>
+        
+        <h2>👨‍🏫 Welcome, Trainer!</h2>
+        <a href="trainer.php" class="back-link">⬅️ Back to Dashboard</a>
+        <div class="cards">
+            <?php if (isset($_GET['view_booking_list'])): ?>
+                <div class="card"><span class="emoji">📅</span>
+                    <a href="trainer.php" style="background:#e53935;">Hide Booking</a>
+                </div>
+            <?php else: ?>
+                <div class="card"><span class="emoji">📅</span>
+                    <a href="trainer.php?view_booking_list=1">View Booking</a>
+                </div>
+            <?php endif; ?>
+            <?php if (isset($_GET['view_report_list'])): ?>
+                <div class="card"><span class="emoji">📊</span>
+                    <a href="trainer.php" style="background:#e53935;">Hide Reports</a>
+                </div>
+            <?php else: ?>
+                <div class="card"><span class="emoji">📊</span>
+                    <a href="trainer.php?view_report_list=1">View Reports</a>
+                </div>
+            <?php endif; ?>
+            <div class="card">
+                <span class="emoji">💰</span>
+                <a href="payment_dashboard.php" class="fee-status-button">Payment Dashboard</a>
+            </div>
+            <div class="card">
+                <span class="emoji">💬</span>
+                <a href="trainer.php?view_feedback_list=1">View Feedback</a>
+            </div>
+            <div class="card">
+                <span class="emoji">🚪</span>
+                <a href="trainer.php?logout=1">Logout</a>
+            </div>
+        </div>
+
         <?php if (isset($_GET['view_booking_list'])): ?>
-            <div class="card"><span class="emoji">📅</span>
-                <a href="trainer.php" style="background:#e53935;">Hide Booking</a>
-            </div>
-        <?php else: ?>
-            <div class="card"><span class="emoji">📅</span>
-                <a href="trainer.php?view_booking_list=1">View Booking</a>
-            </div>
-        <?php endif; ?>
-        <?php if (isset($_GET['view_report_list'])): ?>
-            <div class="card"><span class="emoji">📊</span>
-                <a href="trainer.php" style="background:#e53935;">Hide Reports</a>
-            </div>
-        <?php else: ?>
-            <div class="card"><span class="emoji">📊</span>
-                <a href="trainer.php?view_report_list=1">View Reports</a>
-            </div>
-        <?php endif; ?>
-        <div class="card">
-            <span class="emoji">💰</span>
-            <a href="fee_status.php" class="fee-status-button">Fee Status</a>
-        </div>
-        <div class="card">
-            <span class="emoji">💬</span>
-            <a href="trainer.php?view_feedback_list=1">View Feedback</a>
-        </div>
-        <div class="card">
-            <span class="emoji">🚪</span>
-            <a href="trainer.php?logout=1">Logout</a>
-        </div>
-    </div>
-
-    <?php if (isset($_GET['view_booking_list'])): ?>
-        <table>
-            <tr>
-                <th>👤 Customer</th>
-                <th>⏰ Slot Time</th>
-                <th>📋 Status</th>
-                <th>🔍 View Booking</th>
-            </tr>
-            <?php foreach ($bookings as $booking): ?>
-            <tr>
-                <td><?= htmlspecialchars($booking['customer_name']) ?></td>
-                <td><?= htmlspecialchars($booking['slot_time']) ?></td>
-                <td>
-                    <?php if (
-                        isset($_GET['action_booking_id']) && 
-                        $_GET['action_booking_id'] == $booking['booking_id'] && 
-                        $booking['status'] === 'pending'
-                    ): ?>
-                        <form method="post" style="display:inline;">
-                            <input type="hidden" name="booking_id" value="<?= $booking['booking_id'] ?>">
-                            <button type="submit" name="action" value="approve" class="view-btn" style="background:#43a047;color:#fff;">
-                                <span class="btn-emoji">✅</span>Approve
-                            </button>
-                            <button type="submit" name="action" value="reject" class="view-btn" style="background:#e53935;color:#fff;">
-                                <span class="btn-emoji">❌</span>Reject
-                            </button>
-                        </form>
-                    <?php else: ?>
-                        <?php if ($booking['status'] === 'pending'): ?>
-                            <a class="view-btn" href="?view_booking_list=1&action_booking_id=<?= $booking['booking_id'] ?>">
-                                <span class="btn-emoji">⏳</span><?= htmlspecialchars($booking['status']) ?>
-                            </a>
-                        <?php else: ?>
-                            <?= htmlspecialchars($booking['status']) ?>
-                        <?php endif; ?>
-                    <?php endif; ?>
-                </td>
-                <td>
-                    <a class="view-btn" href="?view_booking_id=<?= $booking['booking_id'] ?>&view_booking_list=1">
-                        <span class="btn-emoji">🔍</span>View Booking
-                    </a>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </table>
-        <?php if ($showBooking) { viewBooking($showBooking); } ?>
-    <?php endif; ?>
-
-    <?php if (isset($_GET['view_report_list'])): ?>
-        <?php
-        // Fetch all customers who have progress records
-        $stmt = $pdo->prepare("
-            SELECT DISTINCT users.id, users.name
-            FROM progress
-            JOIN users ON progress.customer_id = users.id
-            WHERE users.role = 'customer'
-        ");
-        $stmt->execute();
-        $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        ?>
-        <h3 style="margin-top:30px;">📈 Customer Progress Reports</h3>
-        <table>
-            <tr>
-                <th>👤 Customer</th>
-                <th>⚡ Action</th>
-            </tr>
-            <?php foreach ($customers as $customer): ?>
-            <tr>
-                <td><?= htmlspecialchars($customer['name']) ?></td>
-                <td>
-                    <a class="view-btn" href="trainer.php?view_report_list=1&customer_id=<?= $customer['id'] ?>">
-                        <span class="btn-emoji">👁️</span>View Report
-                    </a>
-                    <a class="view-btn" style="background:#43a047;color:#fff;margin-left:10px;" href="analyze_report.php?customer_id=<?= $customer['id'] ?>">
-                        <span class="btn-emoji">🧠</span>Analyze
-                    </a>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </table>
-        <?php
-        // If a customer is selected, show their report
-        if (isset($_GET['customer_id'])) {
-            showProgressReport($pdo, intval($_GET['customer_id']));
-        }
-        // If "Analyze" is clicked, show the analyzed report
-        if (isset($_GET['analyze_id'])) {
-            echo "<div style='margin-top:30px;'>";
-            echo "<h3>🧠 Analyzed Progress Report</h3>";
-            showProgressReport($pdo, intval($_GET['analyze_id']));
-            echo "</div>";
-        }
-        ?>
-    <?php endif; ?>
-
-    <?php if (isset($_GET['view_feedback_list'])): ?>
-        <?php
-        // Fetch feedback from the database
-        $stmt = $pdo->prepare("
-            SELECT f.feedback, f.rating, f.created_at, u.name AS customer_name
-            FROM feedback f
-            JOIN users u ON f.customer_id = u.id
-            ORDER BY f.created_at DESC
-        ");
-        $stmt->execute();
-        $feedbacks = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        ?>
-        <div class="feedback-section">
-            <h3 style="margin-top:30px;">💬 Customer Feedback</h3>
             <table>
                 <tr>
                     <th>👤 Customer</th>
-                    <th>📝 Feedback</th>
-                    <th>⭐ Rating</th>
-                    <th>📅 Submitted On</th>
+                    <th>⏰ Slot Time</th>
+                    <th>📋 Status</th>
+                    <th>🔍 View Booking</th>
                 </tr>
-                <?php foreach ($feedbacks as $feedback): ?>
+                <?php foreach ($bookings as $booking): ?>
                 <tr>
-                    <td><?= htmlspecialchars($feedback['customer_name']) ?></td>
-                    <td><?= nl2br(htmlspecialchars($feedback['feedback'])) ?></td>
-                    <td><?= str_repeat('⭐', $feedback['rating']) ?></td>
-                    <td><?= htmlspecialchars($feedback['created_at']) ?></td>
+                    <td><?= htmlspecialchars($booking['customer_name']) ?></td>
+                    <td><?= htmlspecialchars($booking['slot_time']) ?></td>
+                    <td>
+                        <?php if (
+                            isset($_GET['action_booking_id']) && 
+                            $_GET['action_booking_id'] == $booking['booking_id'] && 
+                            $booking['status'] === 'pending'
+                        ): ?>
+                            <form method="post" style="display:inline;">
+                                <input type="hidden" name="booking_id" value="<?= $booking['booking_id'] ?>">
+                                <button type="submit" name="action" value="approve" class="view-btn" style="background:#43a047;color:#fff;">
+                                    <span class="btn-emoji">✅</span>Approve
+                                </button>
+                                <button type="submit" name="action" value="reject" class="view-btn" style="background:#e53935;color:#fff;">
+                                    <span class="btn-emoji">❌</span>Reject
+                                </button>
+                            </form>
+                        <?php else: ?>
+                            <?php if ($booking['status'] === 'pending'): ?>
+                                <a class="view-btn" href="?view_booking_list=1&action_booking_id=<?= $booking['booking_id'] ?>">
+                                    <span class="btn-emoji">⏳</span><?= htmlspecialchars($booking['status']) ?>
+                                </a>
+                            <?php else: ?>
+                                <?= htmlspecialchars($booking['status']) ?>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <a class="view-btn" href="?view_booking_id=<?= $booking['booking_id'] ?>&view_booking_list=1">
+                            <span class="btn-emoji">🔍</span>View Booking
+                        </a>
+                    </td>
                 </tr>
                 <?php endforeach; ?>
             </table>
-        </div>
-    <?php endif; ?>
-</div>
-<script>
-    // Confetti animation for fun!
-    function randomColor() {
-        const colors = ['#4dd0e1', '#1976d2', '#ffeb3b', '#ff4081', '#69f0ae', '#ffd740', '#ff5252'];
-        return colors[Math.floor(Math.random() * colors.length)];
-    }
-    function createConfettiPiece(container) {
-        const confetti = document.createElement('div');
-        confetti.className = 'confetti';
-        confetti.style.background = randomColor();
-        confetti.style.left = Math.random() * 100 + '%';
-        confetti.style.top = '-20px';
-        confetti.style.opacity = Math.random() * 0.5 + 0.5;
-        confetti.style.width = confetti.style.height = (Math.random() * 8 + 8) + 'px';
-        confetti.style.transition = 'top 2.5s linear, left 2.5s linear, opacity 2.5s linear';
-        container.appendChild(confetti);
-        setTimeout(() => {
-            confetti.style.top = (Math.random() * 80 + 20) + '%';
-            confetti.style.left = (Math.random() * 100) + '%';
-            confetti.style.opacity = 0;
-        }, 10);
-        setTimeout(() => {
-            confetti.remove();
-        }, 2600);
-    }
-    // Burst confetti on load and on clicking any card
-    const container = document.getElementById('confetti-container');
-    for (let i = 0; i < 30; i++) setTimeout(() => createConfettiPiece(container), i * 60);
-    document.querySelectorAll('.card').forEach(card => {
-        card.addEventListener('click', () => {
-            for (let i = 0; i < 20; i++) setTimeout(() => createConfettiPiece(container), i * 30);
-        });
-    });
+            <?php if ($showBooking) { viewBooking($showBooking); } ?>
+        <?php endif; ?>
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const viewFeedbackButton = document.querySelector('a[href*="view_feedback_list"]');
-        if (viewFeedbackButton) {
-            viewFeedbackButton.addEventListener('click', () => {
-                const feedbackSection = document.querySelector('.feedback-section');
-                if (feedbackSection) {
-                    feedbackSection.classList.add('feedback-container');
-                }
-            });
+        <?php if (isset($_GET['view_report_list'])): ?>
+            <?php
+            // Fetch all customers who have progress records
+            $stmt = $pdo->prepare("
+                SELECT DISTINCT users.id, users.name
+                FROM progress
+                JOIN users ON progress.customer_id = users.id
+                WHERE users.role = 'customer'
+            ");
+            $stmt->execute();
+            $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            ?>
+            <h3 style="margin-top:30px;">📈 Customer Progress Reports</h3>
+            <table>
+                <tr>
+                    <th>👤 Customer</th>
+                    <th>⚡ Action</th>
+                </tr>
+                <?php foreach ($customers as $customer): ?>
+                <tr>
+                    <td><?= htmlspecialchars($customer['name']) ?></td>
+                    <td>
+                        <a class="view-btn" href="trainer.php?view_report_list=1&customer_id=<?= $customer['id'] ?>">
+                            <span class="btn-emoji">👁️</span>View Report
+                        </a>
+                        <a class="view-btn" style="background:#43a047;color:#fff;margin-left:10px;" href="analyze_report.php?customer_id=<?= $customer['id'] ?>">
+                            <span class="btn-emoji">🧠</span>Analyze
+                        </a>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </table>
+            <?php
+            // If a customer is selected, show their report
+            if (isset($_GET['customer_id'])) {
+                showProgressReport($pdo, intval($_GET['customer_id']));
+            }
+            // If "Analyze" is clicked, show the analyzed report
+            if (isset($_GET['analyze_id'])) {
+                echo "<div style='margin-top:30px;'>";
+                echo "<h3>🧠 Analyzed Progress Report</h3>";
+                showProgressReport($pdo, intval($_GET['analyze_id']));
+                echo "</div>";
+            }
+            ?>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['view_feedback_list'])): ?>
+            <?php
+            // Fetch feedback from the database
+            $stmt = $pdo->prepare("
+                SELECT f.feedback, f.rating, f.created_at, u.name AS customer_name
+                FROM feedback f
+                JOIN users u ON f.customer_id = u.id
+                ORDER BY f.created_at DESC
+            ");
+            $stmt->execute();
+            $feedbacks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            ?>
+            <div class="feedback-section">
+                <h3 style="margin-top:30px;">💬 Customer Feedback</h3>
+                <table>
+                    <tr>
+                        <th>👤 Customer</th>
+                        <th>📝 Feedback</th>
+                        <th>⭐ Rating</th>
+                        <th>📅 Submitted On</th>
+                    </tr>
+                    <?php foreach ($feedbacks as $feedback): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($feedback['customer_name']) ?></td>
+                        <td><?= nl2br(htmlspecialchars($feedback['feedback'])) ?></td>
+                        <td><?= str_repeat('⭐', $feedback['rating']) ?></td>
+                        <td><?= htmlspecialchars($feedback['created_at']) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </table>
+            </div>
+        <?php endif; ?>
+    </div>
+    <script>
+        // Confetti animation for fun!
+        function randomColor() {
+            const colors = ['#4dd0e1', '#1976d2', '#ffeb3b', '#ff4081', '#69f0ae', '#ffd740', '#ff5252'];
+            return colors[Math.floor(Math.random() * colors.length)];
         }
-    });
-</script>
+        function createConfettiPiece(container) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.background = randomColor();
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.top = '-20px';
+            confetti.style.opacity = Math.random() * 0.5 + 0.5;
+            confetti.style.width = confetti.style.height = (Math.random() * 8 + 8) + 'px';
+            confetti.style.transition = 'top 2.5s linear, left 2.5s linear, opacity 2.5s linear';
+            container.appendChild(confetti);
+            setTimeout(() => {
+                confetti.style.top = (Math.random() * 80 + 20) + '%';
+                confetti.style.left = (Math.random() * 100) + '%';
+                confetti.style.opacity = 0;
+            }, 10);
+            setTimeout(() => {
+                confetti.remove();
+            }, 2600);
+        }
+        // Burst confetti on load and on clicking any card
+        const container = document.getElementById('confetti-container');
+        for (let i = 0; i < 30; i++) setTimeout(() => createConfettiPiece(container), i * 60);
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', () => {
+                for (let i = 0; i < 20; i++) setTimeout(() => createConfettiPiece(container), i * 30);
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const viewFeedbackButton = document.querySelector('a[href*="view_feedback_list"]');
+            if (viewFeedbackButton) {
+                viewFeedbackButton.addEventListener('click', () => {
+                    const feedbackSection = document.querySelector('.feedback-section');
+                    if (feedbackSection) {
+                        feedbackSection.classList.add('feedback-container');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
