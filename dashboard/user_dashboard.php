@@ -15,14 +15,18 @@ require_once("../includes/db.php");
         body {
             margin: 0;
             font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../images/user-dashboard-bg.jpg') no-repeat center center fixed;
+            /* Improved background image with reduced overlay opacity for better visibility */
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../images/user-dashboard-bg.jpg') no-repeat center center fixed;
             background-size: cover;
             color: #fff;
             position: relative;
             overflow-x: hidden;
+            /* Optimize image rendering */
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
         
-        /* Add animated gradient overlay */
+        /* Reduced opacity of gradient overlay for better image visibility */
         body::before {
             content: '';
             position: fixed;
@@ -32,9 +36,9 @@ require_once("../includes/db.php");
             height: 100%;
             background: linear-gradient(
                 135deg, 
-                rgba(76, 175, 80, 0.2) 0%, 
+                rgba(76, 175, 80, 0.15) 0%, 
                 rgba(0, 0, 0, 0) 50%, 
-                rgba(255, 152, 0, 0.2) 100%
+                rgba(255, 152, 0, 0.15) 100%
             );
             z-index: -1;
             animation: gradientShift 15s ease infinite;

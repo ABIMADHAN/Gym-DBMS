@@ -27,16 +27,17 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
         body {
             margin: 0;
             font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../images/customer-dashboard-bg.jpg') no-repeat center center fixed;
+            /* Enhanced background image with lighter overlay */
+            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('../images/customer-dashboard-bg.jpg') no-repeat center center fixed;
             background-size: cover;
             color: #fff;
             position: relative;
             overflow-x: hidden;
-            image-rendering: -webkit-optimize-contrast; /* Improves image clarity in Chrome */
-            image-rendering: crisp-edges; /* Improves image clarity in Firefox */
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
         
-        /* Animated gradient overlay */
+        /* Reduced opacity and added more vibrant colors to gradient overlay */
         body::before {
             content: '';
             position: fixed;
@@ -46,13 +47,13 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
             height: 100%;
             background: linear-gradient(
                 135deg, 
-                rgba(33, 150, 243, 0.15) 0%, 
+                rgba(33, 150, 243, 0.2) 0%, 
                 rgba(0, 0, 0, 0) 50%, 
-                rgba(156, 39, 176, 0.15) 100%
+                rgba(156, 39, 176, 0.2) 100%
             );
             z-index: -1;
             animation: gradientShift 15s ease infinite;
-            backdrop-filter: none; /* Remove any potential blur */
+            backdrop-filter: none;
         }
         
         @keyframes gradientShift {
@@ -140,17 +141,23 @@ $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
             margin-top: 30px;
         }
 
+        /* Card styling enhancement for better contrast with background */
         .card {
-            background-color: #ff5722;
+            background-color: rgba(255, 87, 34, 0.85);
             color: white;
             border-radius: 10px;
             padding: 20px;
             text-align: center;
-            transition: transform 0.2s ease;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .card:hover {
-            transform: scale(1.05);
+            transform: translateY(-5px) scale(1.05);
+            background-color: rgba(255, 87, 34, 1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
         }
 
         a {

@@ -7,29 +7,12 @@ $plan_id = intval($_GET['plan_id']);
 $amount = floatval($_GET['amount']);
 $discount_code = isset($_GET['discount_code']) ? $_GET['discount_code'] : '';
 
-// Apply discount if valid code is provided
-$discount_amount = 0;
-$original_amount = $amount;
-if (!empty($discount_code)) {
-    // Check if discount_codes table exists
-    try {
-        $stmt = $pdo->prepare("SELECT discount_percent FROM discount_codes WHERE code = ? AND active = 1 AND expiry_date >= CURDATE()");
-        $stmt->execute([$discount_code]);
-        $discount = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($discount) {
-            $discount_amount = $amount * ($discount['discount_percent'] / 100);
-            $amount = $amount - $discount_amount;
-        }
-    } catch (PDOException $e) {
-        // Table doesn't exist yet, ignore discount
-    }
-}
-
+// Fetch customer information
 $stmt = $pdo->prepare("SELECT name FROM customers WHERE customer_id = ?");
 $stmt->execute([$customer_id]);
 $customer_name = $stmt->fetchColumn();
 
+// Fetch plan information
 $stmt = $pdo->prepare("SELECT plan_name FROM fee_structure WHERE id = ?");
 $stmt->execute([$plan_id]);
 $plan_name = $stmt->fetchColumn();
@@ -55,7 +38,6 @@ if (empty($gateways)) {
     $gateways = $default_methods;
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -117,12 +99,19 @@ if (empty($gateways)) {
 
         .original-price {
             text-decoration: line-through;
-            color: #888;
+            color: #999;
+            font-size: 0.9em;
+            margin-right: 5px;
         }
 
         .discount-applied {
-            color: #4caf50;
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
             font-weight: bold;
+            border-left: 4px solid #4CAF50;
         }
 
         .final-price {
@@ -288,6 +277,16 @@ if (empty($gateways)) {
             margin-right: 10px;
         }
 
+        .discount-notice {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+            border-left: 4px solid #4caf50;
+        }
+
         /* Animations */
         @keyframes fadeIn {
             from {
@@ -336,14 +335,14 @@ if (empty($gateways)) {
             <p><strong>Customer:</strong> <?php echo htmlspecialchars($customer_name); ?></p>
             <p><strong>Plan:</strong> <?php echo htmlspecialchars($plan_name); ?></p>
             
+            <?php if (!empty($discount_code)): ?>
+            <div class="discount-notice">
+                <p><strong>Promo Code Applied:</strong> <?php echo htmlspecialchars($discount_code); ?></p>
+            </div>
+            <?php endif; ?>
+            
             <div class="price-details">
-                <div>
-                    <?php if ($discount_amount > 0): ?>
-                        <div class="original-price">Original Price: $<?php echo number_format($original_amount, 2); ?></div>
-                        <div class="discount-applied">Discount Applied: -$<?php echo number_format($discount_amount, 2); ?></div>
-                    <?php endif; ?>
-                    <div class="final-price">Total: $<?php echo number_format($amount, 2); ?></div>
-                </div>
+                <div class="final-price">Total: ₹<?php echo number_format($amount, 2); ?></div>
             </div>
         </div>
         
@@ -422,7 +421,7 @@ if (empty($gateways)) {
                     </div>
                 </div>
                 
-                <button type="submit">Pay Now $<?php echo number_format($amount, 2); ?></button>
+                <button type="submit">Pay ₹<?php echo number_format($amount, 2); ?></button>
             </form>
         </div>
         
@@ -440,7 +439,7 @@ if (empty($gateways)) {
                     <input type="email" id="paypal_email" name="paypal_email" placeholder="your@email.com" required>
                 </div>
                 
-                <button type="submit">Pay with PayPal $<?php echo number_format($amount, 2); ?></button>
+                <button type="submit">Pay with PayPal ₹<?php echo number_format($amount, 2); ?></button>
             </form>
         </div>
         
@@ -458,7 +457,7 @@ if (empty($gateways)) {
                     <p><strong>Bank Name:</strong> GYYM Bank</p>
                     <p><strong>Account Number:</strong> 123456789</p>
                     <p><strong>Routing Number:</strong> 987654321</p>
-                    <p><strong>Amount:</strong> $<?php echo number_format($amount, 2); ?></p>
+                    <p><strong>Amount:</strong> ₹<?php echo number_format($amount, 2); ?></p>
                     <p><strong>Reference:</strong> GYYM-<?php echo $customer_id; ?>-<?php echo time(); ?></p>
                 </div>
                 
@@ -482,7 +481,7 @@ if (empty($gateways)) {
                 
                 <div class="form-group">
                     <p>Please visit the gym reception to make your payment.</p>
-                    <p><strong>Amount Due:</strong> $<?php echo number_format($amount, 2); ?></p>
+                    <p><strong>Amount Due:</strong> ₹<?php echo number_format($amount, 2); ?></p>
                     <p><strong>Reference Code:</strong> GYYM-<?php echo $customer_id; ?>-<?php echo substr(time(), -6); ?></p>
                     <p>Please show this code to the receptionist when making your payment.</p>
                 </div>
@@ -568,6 +567,25 @@ if (empty($gateways)) {
                 // Fallback to credit card if no methods found
                 selectPayment('credit_card');
             }
+        });
+        
+        // Make sure any JavaScript that might be using the amount value is updated
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set the amount for all payment buttons and displays
+            const amountValue = <?php echo json_encode($amount); ?>;
+            const formattedAmount = '₹' + parseFloat(amountValue).toFixed(2);
+            
+            // Update any elements that might display the amount
+            document.querySelectorAll('.payment-amount').forEach(element => {
+                element.textContent = formattedAmount;
+            });
+            
+            // If there are payment buttons with amount in text
+            document.querySelectorAll('button[type="submit"]').forEach(button => {
+                if (button.textContent.includes('Pay')) {
+                    button.textContent = button.textContent.replace(/[\$₹]\d+(\.\d+)?/, formattedAmount);
+                }
+            });
         });
     </script>
 </body>

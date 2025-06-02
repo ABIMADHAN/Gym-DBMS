@@ -5,9 +5,28 @@ session_start();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $customer_id = intval($_POST['customer_id']);
     $plan_id = intval($_POST['plan_id']);
-    $amount_paid = floatval($_POST['amount_paid']);
+    $amount_paid = floatval($_POST['amount_paid']); // This should be the discounted amount
     $payment_method = $_POST['payment_method'];
     $discount_code = isset($_POST['discount_code']) ? $_POST['discount_code'] : '';
+    
+    // Store discount code details if provided
+    $discount_details = null;
+    if (!empty($discount_code)) {
+        $valid_promo_codes = [
+            'WELCOME10' => 10,
+            'SUMMER20' => 20,
+            'FLASH50' => 50,
+            'GYM25' => 25
+        ];
+        
+        if (isset($valid_promo_codes[$discount_code])) {
+            $discount_percent = $valid_promo_codes[$discount_code];
+            $discount_details = [
+                'code' => $discount_code,
+                'percent' => $discount_percent
+            ];
+        }
+    }
     
     // Set default transaction ID if not provided
     $transaction_id = isset($_POST['transaction_id']) ? $_POST['transaction_id'] : 'TRANS-' . time();
@@ -38,29 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $receipt_number = 'GYYM-' . date('Ymd') . '-' . rand(1000, 9999);
     
     try {
-        // If discount code was used, record it if the discount_codes table exists
-        $discount_id = null;
-        if (!empty($discount_code)) {
-            try {
-                $discountStmt = $pdo->prepare("SELECT id, discount_percent FROM discount_codes WHERE code = ?");
-                $discountStmt->execute([$discount_code]);
-                $discount = $discountStmt->fetch(PDO::FETCH_ASSOC);
-                
-                if ($discount) {
-                    $discount_id = $discount['id'];
-                    // Record discount usage if table exists
-                    try {
-                        $usageStmt = $pdo->prepare("INSERT INTO discount_usage (discount_id, customer_id, used_at) VALUES (?, ?, NOW())");
-                        $usageStmt->execute([$discount_id, $customer_id]);
-                    } catch (PDOException $e) {
-                        // Table doesn't exist, continue without recording usage
-                    }
-                }
-            } catch (PDOException $e) {
-                // Table doesn't exist, continue without discount
-            }
-        }
-        
         // Check if the fee_payments table has the necessary columns
         $hasRequiredColumns = false;
         try {
@@ -73,15 +69,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         if ($hasRequiredColumns) {
-            // Insert payment with all new columns
+            // Store payment with discount information if available
             $stmt = $pdo->prepare("
                 INSERT INTO fee_payments (
                     customer_id, plan_id, amount_paid, payment_date, 
                     payment_method, transaction_id, status, 
-                    payment_details, receipt_number, discount_id
+                    payment_details, receipt_number, discount_id, notes
                 )
-                VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?)
             ");
+            
+            $payment_details_json = json_encode([
+                'discount_code' => $discount_code,
+                'discount_details' => $discount_details,
+                // ...other payment details...
+            ]);
             
             $stmt->execute([
                 $customer_id, 
@@ -90,9 +92,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $payment_method, 
                 $transaction_id, 
                 $status,
-                json_encode($payment_details),
+                $payment_details_json,
                 $receipt_number,
-                $discount_id
+                null, // discount_id placeholder until you have a proper discount table
+                "Applied promo code: " . $discount_code
             ]);
         } else {
             // Insert payment with only the original columns
@@ -313,7 +316,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             <div class="receipt-details">
                 <p><strong>Receipt Number:</strong> <?php echo $receipt_number; ?></p>
-                <p><strong>Amount:</strong> $<?php echo number_format($amount_paid, 2); ?></p>
+                <p><strong>Amount:</strong> ₹<?php echo number_format($amount_paid, 2); ?></p>
                 <p><strong>Payment Method:</strong> <?php echo ucfirst(str_replace('_', ' ', $payment_method)); ?></p>
                 <p><strong>Date:</strong> <?php echo date('F j, Y, g:i a'); ?></p>
                 <p><strong>Status:</strong> <span class="payment-status status-<?php echo $status; ?>"><?php echo ucfirst($status); ?></span></p>
